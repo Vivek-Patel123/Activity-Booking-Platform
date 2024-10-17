@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Create New Offering</h2>
+<form method="POST" action="{{ url_for('new_offering') }}">
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required>
+
+    <label for="location">Location:</label>
+    <input type="text" id="location" name="location" required>
+
+    <label for="start_time">Start Time:</label>
+    <input type="time" id="start_time" name="start_time" required>
+
+    <label for="end_time">End Time:</label>
+    <input type="time" id="end_time" name="end_time" required>
+
+    <label for="lesson_type">Lesson Type:</label>
+    <select id="lesson_type" name="lesson_type">
+        <option value="group">Group</option>
+        <option value="private">Private</option>
+    </select>
+
+    <button type="submit">Create Offering</button>
+</form>
+{% endblock %}
