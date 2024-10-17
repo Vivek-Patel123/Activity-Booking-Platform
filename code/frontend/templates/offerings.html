@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Available Offerings</h2>
+<ul>
+    {% for offering in offerings %}
+        <li>
+            <strong>{{ offering.title }}</strong><br>
+            Location: {{ offering.location }}<br>
+            Time: {{ offering.start_time }} - {{ offering.end_time }}<br>
+            Type: {{ offering.lesson_type }}<br>
+            <form method="POST" action="{{ url_for('offerings') }}">
+                <input type="hidden" name="offering_id" value="{{ offering.id }}">
+                <button type="submit">Accept Offering</button>
+            </form>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}
