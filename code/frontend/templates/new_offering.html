@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block content %}
 <h2>Create New Offering</h2>
 <form method="POST" action="{{ url_for('new_offering') }}">
@@ -15,11 +16,24 @@
     <input type="time" id="end_time" name="end_time" required>
 
     <label for="lesson_type">Lesson Type:</label>
-    <select id="lesson_type" name="lesson_type">
+    <select id="lesson_type" name="lesson_type" onchange="toggleMaxParticipantsField()">
         <option value="group">Group</option>
         <option value="private">Private</option>
     </select>
 
+    <div id="max_participants_field" style="display: none;">
+        <label for="max_participants">Maximum Participants:</label>
+        <input type="number" id="max_participants" name="max_participants" min="1">
+    </div>
+
     <button type="submit">Create Offering</button>
 </form>
+
+<script>
+function toggleMaxParticipantsField() {
+    const lessonType = document.getElementById("lesson_type").value;
+    const maxParticipantsField = document.getElementById("max_participants_field");
+    maxParticipantsField.style.display = lessonType === "group" ? "block" : "none";
+}
+</script>
 {% endblock %}
