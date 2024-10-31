@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block content %}
 <h2>Available Offerings</h2>
 <ul>
@@ -8,9 +9,34 @@
             Location: {{ offering.location }}<br>
             Time: {{ offering.start_time }} - {{ offering.end_time }}<br>
             Type: {{ offering.lesson_type }}<br>
-            <form method="POST" action="{{ url_for('offerings') }}">
+            {% if offering.lesson_type == 'private' %}
+                {% if not offering.booked_by %}
+                    <form method="POST" action="{{ url_for('offerings') }}">
+                        <input type="hidden" name="offering_id" value="{{ offering.id }}">
+                        <input type="text" name="instructor_name" placeholder="Enter your name" required>
+                        <button type="submit">Book Offering</button>
+                    </form>
+                {% else %}
+                    <p><em>Already booked by {{ offering.booked_by }}</em></p>
+                {% endif %}
+            {% elif offering.lesson_type == 'group' %}
+                <p>{{ offering.participants }} / {{ offering.max_participants }} participants booked</p>
+                
+                {% if offering.participants is not none and offering.max_participants is not none and offering.participants < offering.max_participants %}
+                    <form method="POST" action="{{ url_for('offerings') }}">
+                        <input type="hidden" name="offering_id" value="{{ offering.id }}">
+                        <input type="text" name="instructor_name" placeholder="Enter your name" required>
+                        <button type="submit">Join Group Offering</button>
+                    </form>
+                {% else %}
+                    <p><em>This offering is fully booked.</em></p>
+                {% endif %}
+            {% endif %}
+
+            <!-- Delete Button for Admins -->
+            <form method="POST" action="{{ url_for('delete_offering') }}" style="display:inline;">
                 <input type="hidden" name="offering_id" value="{{ offering.id }}">
-                <button type="submit">Accept Offering</button>
+                <button type="submit" onclick="return confirm('Are you sure you want to delete this offering?');">Delete Offering</button>
             </form>
         </li>
     {% endfor %}
