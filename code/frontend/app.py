@@ -33,6 +33,18 @@ def offerings():
         activity = request.form['activity']
         day = request.form['day']
 
+        # Reference to the user's bookings
+        user_bookings_ref = db.reference(f'users/{user["uid"]}/bookings')
+        user_bookings = user_bookings_ref.get() or {}
+
+        # Check if the user has already booked this offering
+        for booking_id, booking in user_bookings.items():
+            if (booking['offering_id'] == offering_id and
+                booking['activity'] == activity and
+                booking['day'] == day):
+                flash("You have already booked this offering.", "error")
+                return redirect(url_for('offerings'))
+
         offering_ref = db.reference(f'locations/{offering_id}')
         offering_data = offering_ref.get()
 
@@ -51,8 +63,8 @@ def offerings():
                         if participants < max_participants:
                             schedule['participants'] = participants + 1
                             offering_ref.child('schedule').set(offering_data['schedule'])
-                            user_bookings_ref = db.reference(f'users/{user["uid"]}/bookings')
                             user_bookings_ref.push({
+                                'offering_id': offering_id,
                                 'location': offering_data['name'],
                                 'city': offering_data['city'],
                                 'activity': schedule['activity'],
@@ -97,6 +109,7 @@ def offerings():
             offerings_list.append(offering)
 
     return render_template('offerings.html', offerings=offerings_list, user=user)
+
 
 
 
