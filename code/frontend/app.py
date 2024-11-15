@@ -3,8 +3,23 @@ import firebase_admin
 from firebase_admin import credentials, db
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# Initialize Firebase
-cred = credentials.Certificate("credentials.json")
+# Firebase credentials embedded directly in the code
+firebase_credentials = {
+    "type": "service_account",
+    "project_id": "soen342-929fb",
+    "private_key_id": "a10bc1dd5df9b0355ed41d2c38249988042bfdc2",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCYCXaNAbenpVsR\n27qIgSZowUMPGRGu56BFISMTb4tEAhM2ac4jMCqIrvqLxxqMaHfJ0NV23rPO31kX\nUag12gqskFTvKLBJG7tka5b51tp50fWwUt6fwcGQR3rIrJMy12A56gLxnUeQ/xQh\ngS5MMutZnlDRzDZHqYcca+exyHf3m1v44fubjiZmu8b9TeEtCv471EWvZc2MCLCy\nnsbQF1ICZ0v99JAmIqbqD6Il+uRSPQtVLDbi94CZTWGCJeqcg0bweMDc1irZ/sXX\no3RPqnN0FZuyCiOpIdDi6U8IIrG+hM8jnC8hKT55bN21GAqNBm0xOBIm4BhP6Rg1\nzWmBnX3/AgMBAAECggEABv2hi0iPgP4tKGVXgPNRljuBQ9wrhNcJG0APGRzTm+02\nyPDeOnmxWvuTA15W5L1OsCykDTwMPacu2c/tY9Nd7kejiUg5Yt6dkcntPmKF13yz\nIn76sZL64hF1DCSOs5N58YIPqSmTEJAA4Kzwy8C6fHuSzFdYVnPIzuu/QG7l5UKq\nM+PLNANEFmvNLjMpByESzwX3/K4fz9JV27NUJtkEnjLMiY2m6YZx30XBAwqrbK5Z\ngmJlTQy3bH+qzjMe7EKGX8i1arr5mWvaxOAvgn/rI3ECSrV3tpAd8hSgdKaViW8Z\nq/B2Qgws4tUwpLdAvkkhiLpSOLW1eTppuEdemit3EQKBgQDOBEtCfS9v0EaB53fB\nAA8BM7OLDrJkN37P1h8lqPUqZmqYjWL+hO/QfeXlXl5iM3UXmE55q+mFEzbzO+NS\nehCjKdiHwFJ+2YkJ0woWHONURyqL2wCm0jMTbNJpoKrOxwKLppms7537RR8gPtW+\nGIBvBUjpMojUVrHwLL9io6LhowKBgQC87Htrx3vbEkGajEfVj/VLZhe8OR8XE3O4\nflF547oYoIbq8eAZSOCz6DO2pOFm6ufzezGBW64XSP+mTmXKdILGiCdwbVUES4gw\ngvPShp1IZUpOBnxO8CREDwd2P/Y1P5eNuMf4pcu5J6a+Gdz1jQyS5mgHObeP/NFA\n532g/KEP9QKBgFytXdXZTv+z6CQEJsEx744Q3hIOWH3w4SFKJ9TfPvsF+6oI4KGy\n19co68TVQQxYLbKhl5vwlCqDTFL7e/XcZ6Oe7YOUJwhdf+Jlh8IO2M1O/nrP2Gkz\nYjq416cg2fYPXLvKBJPhb2Zb3/a3jZvolc5byELvstIi9gUffDE5f8qVAoGALhGI\ngx6w0Bnij3o3phclnI43qXlQYIMoy8tZuNxUK98xJyd2GxRPXu93dMk+Aae0igX3\na3DcwebWGEqzvautnBXlcB/pBFQa0KGOLT8QKXAxr1cbhvA+F66GhkpQkmmAXlm5\nwaNES1Ek8uRBoksTztqKcYCch2sB587LLq+L4uUCgYEAkWTcKfIrnGn4jgieHL+l\nKLRHt5HMEqRD2MaKV9SYl484HxytrI4BPCNBYJWh76/FBZAAK7dAdX4gtgVkad+h\nmRU57Kg0u7F7oPjUar+KxN1O2JRIZgnztpMtszFJ6kTLdPatyIfpvF8qdep2vCWu\nmi0v5gKyzGWLah6u5KxYn4A=\n-----END PRIVATE KEY-----\n",
+    "client_email": "firebase-adminsdk-ubput@soen342-929fb.iam.gserviceaccount.com",
+    "client_id": "111412042221283001147",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-ubput%40soen342-929fb.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+}
+
+# Initialize Firebase using the embedded credentials
+cred = credentials.Certificate(firebase_credentials)
 firebase_admin.initialize_app(cred, {
     "databaseURL": "https://soen342-929fb-default-rtdb.firebaseio.com"
 })
