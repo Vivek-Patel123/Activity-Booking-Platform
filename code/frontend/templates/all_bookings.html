@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Bookings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Include the navigation bar -->
+    {% include '_header.html' %}
+
+    <div class="content-container">
+        <h1>All Bookings</h1>
+        {% if bookings %}
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Client Name</th>
+                    <th>Client Email</th>
+                    <th>Location</th>
+                    <th>City</th>
+                    <th>Activity</th>
+                    <th>Mode</th>
+                    <th>Day</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td>{{ booking.client_name }}</td>
+                    <td>{{ booking.client_email }}</td>
+                    <td>{{ booking.location }}</td>
+                    <td>{{ booking.city }}</td>
+                    <td>{{ booking.activity }}</td>
+                    <td>{{ booking.mode }}</td>
+                    <td>{{ booking.day }}</td>
+                    <td>{{ booking.time_start }}</td>
+                    <td>{{ booking.time_end }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No bookings found.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

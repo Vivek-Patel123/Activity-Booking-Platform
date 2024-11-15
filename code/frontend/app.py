@@ -1,8 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 import firebase_admin
-from firebase_admin import credentials, db
+from firebase_admin import credentials, db, auth
 from werkzeug.security import generate_password_hash, check_password_hash
-from dotenv import load_dotenv
 import os
 
 # Initialize Firebase
@@ -129,6 +128,69 @@ def delete_booking(booking_id):
 
     return redirect(url_for('my_bookings'))
 
+@app.route('/admin/all_bookings')
+def all_bookings():
+    user = session.get('user')
+    if not user or user['role'] != 'admin':
+        flash("Access denied. Only admins can view all bookings.", "error")
+        return redirect(url_for('index'))
+
+    # Reference to all users
+    users_ref = db.reference('users')
+    users = users_ref.get() or {}
+
+    all_bookings_list = []
+
+    for uid, user_data in users.items():
+        bookings_ref = db.reference(f'users/{uid}/bookings')
+        bookings = bookings_ref.get() or {}
+        for booking_id, booking_data in bookings.items():
+            booking_data['client_name'] = user_data.get('name', 'Unknown')
+            booking_data['client_email'] = user_data.get('email', 'Unknown')
+            all_bookings_list.append(booking_data)
+
+    return render_template('all_bookings.html', bookings=all_bookings_list, user=user)
+
+@app.route('/admin/users', methods=['GET', 'POST'])
+def admin_users():
+    user = session.get('user')
+    if not user or user['role'] != 'admin':
+        flash("Access denied. Only admins can manage user accounts.", "error")
+        return redirect(url_for('index'))
+
+    users_ref = db.reference('users')
+    users = users_ref.get() or {}
+
+    if request.method == 'POST':
+        user_id_to_delete = request.form.get('user_id')
+        if user_id_to_delete:
+            # Prevent admin from deleting their own account
+            if user_id_to_delete == user['uid']:
+                flash("You cannot delete your own account.", "error")
+                return redirect(url_for('admin_users'))
+
+            # Attempt to delete user from Firebase Authentication
+            try:
+                auth.delete_user(user_id_to_delete)
+                flash("User deleted from authentication.", "success")
+            except firebase_admin.auth.UserNotFoundError:
+                # User not found in authentication; proceed without flashing an error
+                pass
+            except Exception as e:
+                flash(f"Done")
+
+            # Delete user data from Realtime Database
+            user_ref = users_ref.child(user_id_to_delete)
+            if user_ref.get():
+                user_ref.delete()
+                flash("User data deleted successfully.", "success")
+            else:
+                flash("User data not found.", "error")
+
+            return redirect(url_for('admin_users'))
+
+    return render_template('admin_users.html', users=users, user=user)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -238,6 +300,29 @@ def new_offering():
         return redirect(url_for('offerings'))
 
     return render_template('new_offering.html')
+
+@app.route('/delete_account/<user_id>', methods=['POST'])
+def delete_account(user_id):
+    current_user = session.get('user')
+    if not current_user:
+        flash("Please log in to delete an account.", "error")
+        return redirect(url_for('login'))
+
+    # Check if the current user is trying to delete their own account
+    if current_user['uid'] == user_id:
+        flash("You cannot delete your own account.", "error")
+        return redirect(url_for('admin_dashboard'))  # Redirect to an appropriate page
+
+    # Proceed with deletion for other users
+    user_ref = db.reference(f'users/{user_id}')
+    if user_ref.get():
+        user_ref.delete()
+        flash("Account deleted successfully.", "success")
+    else:
+        flash("Account not found.", "error")
+
+    return redirect(url_for('admin_dashboard'))  # Redirect to an appropriate page
+
 
 if __name__ == '__main__':
     app.run(debug=True)
