@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import firebase_admin
 from firebase_admin import credentials, db
 from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv
+import os
 
 # Initialize Firebase
 cred = credentials.Certificate("credentials.json")
