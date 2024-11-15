@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Location</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    {% include '_header.html' %}
+    <div class="form-container">
+        <h1>Create a New Location with Schedule</h1>
+        <form method="POST">
+            <input type="text" name="name" placeholder="Location Name (e.g., EV-Building Gym Room 7)" required>
+            <input type="text" name="city" placeholder="City (e.g., Montreal)" required>
+            <input type="text" name="type" placeholder="Type (e.g., Gym, Pool)" required>
+            <input type="text" name="activity" placeholder="Activity (e.g., Judo)" required>
+            
+            <!-- Mode selection -->
+            <label for="mode">Lesson Mode:</label>
+            <select name="mode" id="mode" required>
+                <option value="private">Private</option>
+                <option value="group">Group</option>
+            </select>
+            
+            <input type="text" name="day" placeholder="Day (e.g., Sunday)" required>
+            <input type="time" name="time_start" placeholder="Start Time (e.g., 12:00)" required>
+            <input type="time" name="time_end" placeholder="End Time (e.g., 15:00)" required>
+            <input type="date" name="start_date" placeholder="Start Date (e.g., 2024-09-01)" required>
+            <input type="date" name="end_date" placeholder="End Date (e.g., 2024-11-30)" required>
+            <button type="submit">Create Location</button>
+        </form>
+    </div>
+</body>
+</html>

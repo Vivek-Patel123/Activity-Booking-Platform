@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Locations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    {% include '_header.html' %}
+    <div class="content-container">
+        <h1>Available Locations and Schedules</h1>
+        <ul class="location-list">
+            {% for location in locations %}
+            <li>
+                <strong>{{ location.name }}</strong> - {{ location.city }}<br>
+                Type: {{ location.type }}
+                <h4>Schedules:</h4>
+                <ul>
+                    {% for schedule in location.schedule %}
+                    <li>
+                        Activity: {{ schedule.activity }}<br>
+                        Mode: {{ schedule.mode | capitalize }}<br> <!-- Display the mode -->
+                        Day: {{ schedule.day }}<br>
+                        Time: {{ schedule.time_start }} to {{ schedule.time_end }}<br>
+                        Availability: {{ schedule.start_date }} to {{ schedule.end_date }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

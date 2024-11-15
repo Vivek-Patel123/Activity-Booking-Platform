@@ -1,39 +1,47 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create New Offering</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    {% include '_header.html' %}
+    <div class="content-container">
+        <h1>Create New Offering</h1>
+        <form method="POST" action="{{ url_for('new_offering') }}">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" required><br>
 
-{% block content %}
-<h2>Create New Offering</h2>
-<form method="POST" action="{{ url_for('new_offering') }}">
-    <label for="title">Title:</label>
-    <input type="text" id="title" name="title" required>
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" required><br>
 
-    <label for="location">Location:</label>
-    <input type="text" id="location" name="location" required>
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city" required><br>
 
-    <label for="start_time">Start Time:</label>
-    <input type="time" id="start_time" name="start_time" required>
+            <label for="time_start">Start Time:</label>
+            <input type="time" id="time_start" name="time_start" required><br>
+        
+            <label for="time_end">End Time:</label>
+            <input type="time" id="time_end" name="time_end" required><br>
 
-    <label for="end_time">End Time:</label>
-    <input type="time" id="end_time" name="end_time" required>
+            <label for="lesson_type">Lesson Type:</label>
+            <select id="lesson_type" name="lesson_type" required>
+                <option value="private">Private</option>
+                <option value="group">Group</option>
+            </select><br>
 
-    <label for="lesson_type">Lesson Type:</label>
-    <select id="lesson_type" name="lesson_type" onchange="toggleMaxParticipantsField()">
-        <option value="group">Group</option>
-        <option value="private">Private</option>
-    </select>
+            <label for="max_participants">Max Participants (if group):</label>
+            <input type="number" id="max_participants" name="max_participants"><br>
 
-    <div id="max_participants_field" style="display: none;">
-        <label for="max_participants">Maximum Participants:</label>
-        <input type="number" id="max_participants" name="max_participants" min="1">
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date" required><br>
+
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" required><br>
+
+            <button type="submit">Create Offering</button>
+        </form>
     </div>
-
-    <button type="submit">Create Offering</button>
-</form>
-
-<script>
-function toggleMaxParticipantsField() {
-    const lessonType = document.getElementById("lesson_type").value;
-    const maxParticipantsField = document.getElementById("max_participants_field");
-    maxParticipantsField.style.display = lessonType === "group" ? "block" : "none";
-}
-</script>
-{% endblock %}
+</body>
+</html>

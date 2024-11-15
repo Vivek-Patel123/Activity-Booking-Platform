@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+    <h1>My Bookings</h1>
+    {% if bookings %}
+        <ul>
+            {% for booking_id, booking in bookings.items() %}
+                <li>
+                    <strong>{{ booking.activity }} ({{ booking.mode | capitalize }})</strong><br>
+                    Location: {{ booking.location }}, {{ booking.city }}<br>
+                    Day: {{ booking.day }}<br>
+                    Time: {{ booking.time_start }} - {{ booking.time_end }}<br>
+                    Duration: {{ booking.start_date }} to {{ booking.end_date }}
+                    <form action="{{ url_for('delete_booking', booking_id=booking_id) }}" method="post">
+                        <button type="submit">Delete Booking</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no bookings at the moment.</p>
+    {% endif %}
+{% endblock %}
