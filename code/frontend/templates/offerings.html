@@ -1,44 +1,31 @@
 {% extends "base.html" %}
 
-{% block content %}
-<h2>Available Offerings</h2>
-<ul>
-    {% for offering in offerings %}
-        <li>
-            <strong>{{ offering.title }}</strong><br>
-            Location: {{ offering.location }}<br>
-            Time: {{ offering.start_time }} - {{ offering.end_time }}<br>
-            Type: {{ offering.lesson_type }}<br>
-            {% if offering.lesson_type == 'private' %}
-                {% if not offering.booked_by %}
-                    <form method="POST" action="{{ url_for('offerings') }}">
-                        <input type="hidden" name="offering_id" value="{{ offering.id }}">
-                        <input type="text" name="instructor_name" placeholder="Enter your name" required>
-                        <button type="submit">Book Offering</button>
-                    </form>
-                {% else %}
-                    <p><em>Already booked by {{ offering.booked_by }}</em></p>
-                {% endif %}
-            {% elif offering.lesson_type == 'group' %}
-                <p>{{ offering.participants }} / {{ offering.max_participants }} participants booked</p>
-                
-                {% if offering.participants is not none and offering.max_participants is not none and offering.participants < offering.max_participants %}
-                    <form method="POST" action="{{ url_for('offerings') }}">
-                        <input type="hidden" name="offering_id" value="{{ offering.id }}">
-                        <input type="text" name="instructor_name" placeholder="Enter your name" required>
-                        <button type="submit">Join Group Offering</button>
-                    </form>
-                {% else %}
-                    <p><em>This offering is fully booked.</em></p>
-                {% endif %}
-            {% endif %}
+{% block title %}Offerings{% endblock %}
 
-            <!-- Delete Button for Admins -->
-            <form method="POST" action="{{ url_for('delete_offering') }}" style="display:inline;">
-                <input type="hidden" name="offering_id" value="{{ offering.id }}">
-                <button type="submit" onclick="return confirm('Are you sure you want to delete this offering?');">Delete Offering</button>
-            </form>
-        </li>
-    {% endfor %}
-</ul>
+{% block content %}
+    <h1>Available Offerings</h1>
+    {% if offerings %}
+        <ul>
+            {% for offering in offerings %}
+                <li>
+                    <strong>{{ offering.activity }} ({{ offering.mode | capitalize }})</strong><br>
+                    Location: {{ offering.location }}, {{ offering.city }}<br>
+                    Day: {{ offering.day }}<br>
+                    Time: {{ offering.time_start }} - {{ offering.time_end }}<br>
+                    {% if offering.is_full %}
+                        <span style="color: red; font-weight: bold;">FULL</span>
+                    {% else %}
+                        {% if not user or user.role != 'admin' %}
+                            <form action="{{ url_for('offerings') }}" method="post">
+                                <input type="hidden" name="offering_id" value="{{ offering.id }}">
+                                <button type="submit">Book Now</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No offerings available at the moment.</p>
+    {% endif %}
 {% endblock %}
