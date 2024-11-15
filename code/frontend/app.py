@@ -30,61 +30,59 @@ def offerings():
             return redirect(url_for('login'))
 
         offering_id = request.form['offering_id']
-        instructor_name = user['name']
-        
-        # Reference to the specific offering
+        activity = request.form['activity']
+        day = request.form['day']
+
         offering_ref = db.reference(f'locations/{offering_id}')
         offering_data = offering_ref.get()
 
         if offering_data:
-            # Retrieve the user's existing bookings
-            user_bookings_ref = db.reference(f'users/{user["uid"]}/bookings')
-            existing_bookings = user_bookings_ref.get() or {}
-
-            # Check if the user has already booked this offering
-            for booking in existing_bookings.values():
-                if booking['location'] == offering_data['name'] and booking['activity'] == offering_data['schedule'][0]['activity']:
-                    flash("You have already booked this offering.", "error")
-                    return redirect(url_for('offerings'))
-
-            # Proceed with booking
-            for schedule in offering_data['schedule']:
-                if schedule.get('mode') == 'private' and not schedule.get('booked_by'):
-                    schedule['booked_by'] = instructor_name
-                    flash(f"Offering successfully booked by {instructor_name}.", "success")
-                elif schedule.get('mode') == 'group':
-                    participants = schedule.get('participants', 0)
-                    max_participants = schedule.get('max_participants', 0)
-                    if participants < max_participants:
-                        schedule['participants'] = participants + 1
-                        flash(f"Offering successfully booked by {instructor_name}.", "success")
+            for schedule in offering_data.get('schedule', []):
+                if schedule['activity'] == activity and schedule['day'] == day:
+                    if user['role'] == 'instructor' and not schedule.get('instructor'):
+                        # Instructor booking
+                        schedule['instructor'] = user['name']
+                        offering_ref.child('schedule').set(offering_data['schedule'])
+                        flash("Offering successfully booked for instruction.", "success")
+                    elif user['role'] == 'user' and schedule.get('instructor'):
+                        # User booking
+                        participants = schedule.get('participants', 0)
+                        max_participants = schedule.get('max_participants', 0)
+                        if participants < max_participants:
+                            schedule['participants'] = participants + 1
+                            offering_ref.child('schedule').set(offering_data['schedule'])
+                            user_bookings_ref = db.reference(f'users/{user["uid"]}/bookings')
+                            user_bookings_ref.push({
+                                'location': offering_data['name'],
+                                'city': offering_data['city'],
+                                'activity': schedule['activity'],
+                                'mode': schedule['mode'],
+                                'day': schedule['day'],
+                                'time_start': schedule['time_start'],
+                                'time_end': schedule['time_end'],
+                                'instructor': schedule.get('instructor')
+                            })
+                            flash("Offering successfully booked.", "success")
+                        else:
+                            flash("This offering is fully booked.", "error")
                     else:
-                        flash("This group offering is fully booked.", "error")
-                else:
-                    flash("This private offering is already booked.", "error")
+                        flash("You are not authorized to book this offering.", "error")
+                    break
+            else:
+                flash("Offering not found.", "error")
+        else:
+            flash("Offering not found.", "error")
 
-            # Update the Firebase entry
-            offering_ref.child('schedule').set(offering_data['schedule'])
+        return redirect(url_for('offerings'))
 
-            # Add the booking to the user's bookings
-            user_bookings_ref.push({
-                'location': offering_data['name'],
-                'city': offering_data['city'],
-                'activity': offering_data['schedule'][0]['activity'],
-                'mode': offering_data['schedule'][0]['mode'],
-                'day': offering_data['schedule'][0]['day'],
-                'time_start': offering_data['schedule'][0]['time_start'],
-                'time_end': offering_data['schedule'][0]['time_end']
-            })
-            return redirect(url_for('my_bookings'))
-
-    # Fetch and display available offerings
+    # Fetch and display offerings
     locations_ref = db.reference('locations')
     locations = locations_ref.get() or {}
     offerings_list = []
+
     for loc_id, loc_data in locations.items():
         for schedule in loc_data.get('schedule', []):
-            offerings_list.append({
+            offering = {
                 'location': loc_data['name'],
                 'city': loc_data['city'],
                 'activity': schedule['activity'],
@@ -92,10 +90,45 @@ def offerings():
                 'day': schedule['day'],
                 'time_start': schedule['time_start'],
                 'time_end': schedule['time_end'],
-                'id': loc_id
-            })
+                'id': loc_id,
+                'instructor': schedule.get('instructor'),
+                'is_full': schedule.get('participants', 0) >= schedule.get('max_participants', 0)
+            }
+            offerings_list.append(offering)
 
     return render_template('offerings.html', offerings=offerings_list, user=user)
+
+
+
+
+@app.route('/instructor/bookings')
+def instructor_bookings():
+    user = session.get('user')
+    if not user or user['role'] != 'instructor':
+        flash("Access denied. Only instructors can view their bookings.", "error")
+        return redirect(url_for('index'))
+
+    # Fetch all locations
+    locations_ref = db.reference('locations')
+    locations = locations_ref.get() or {}
+    instructor_bookings_list = []
+
+    # Iterate through locations and their schedules
+    for loc_id, loc_data in locations.items():
+        for schedule in loc_data.get('schedule', []):
+            if schedule.get('booked_by') == user['name']:
+                instructor_bookings_list.append({
+                    'location': loc_data['name'],
+                    'city': loc_data['city'],
+                    'activity': schedule['activity'],
+                    'mode': schedule['mode'],
+                    'day': schedule['day'],
+                    'time_start': schedule['time_start'],
+                    'time_end': schedule['time_end'],
+                    'id': loc_id
+                })
+
+    return render_template('instructor_bookings.html', bookings=instructor_bookings_list, user=user)
 
 
 @app.route('/my_bookings')
@@ -288,7 +321,8 @@ def new_offering():
                     'end_date': end_date,
                     'participants': 0 if lesson_type == 'group' else None,
                     'max_participants': max_participants,
-                    'booked_by': None
+                    'booked_by': None,
+                    'is_booked': False
                 }
             ]
         }
@@ -300,6 +334,8 @@ def new_offering():
         return redirect(url_for('offerings'))
 
     return render_template('new_offering.html')
+
+
 
 @app.route('/delete_account/<user_id>', methods=['POST'])
 def delete_account(user_id):
@@ -322,6 +358,63 @@ def delete_account(user_id):
         flash("Account not found.", "error")
 
     return redirect(url_for('admin_dashboard'))  # Redirect to an appropriate page
+
+@app.route('/instructor/book_offering', methods=['POST'])
+def book_offering():
+    user = session.get('user')
+    if not user or user['role'] != 'instructor':
+        flash("Access denied. Only instructors can book offerings.", "error")
+        return redirect(url_for('index'))
+
+    offering_id = request.form['offering_id']
+    offering_ref = db.reference(f'locations/{offering_id}')
+    offering_data = offering_ref.get()
+
+    if offering_data:
+        # Check if the offering is already booked
+        if offering_data['schedule'][0].get('is_booked'):
+            flash("This offering has already been booked by another instructor.", "error")
+        else:
+            # Update the offering's booking status
+            offering_ref.child('schedule/0').update({
+                'is_booked': True,
+                'booked_by': user['name']
+            })
+            flash("Offering successfully booked.", "success")
+    else:
+        flash("Offering not found.", "error")
+
+    return redirect(url_for('available_offerings'))
+
+
+
+
+@app.route('/instructor/available_offerings')
+def available_offerings():
+    user = session.get('user')
+    if not user or user['role'] != 'instructor':
+        flash("Access denied. Only instructors can view available offerings.", "error")
+        return redirect(url_for('index'))
+
+    # Fetch offerings that are not yet booked
+    locations_ref = db.reference('locations')
+    locations = locations_ref.get() or {}
+    available_offerings = []
+    for loc_id, loc_data in locations.items():
+        for schedule in loc_data.get('schedule', []):
+            if not schedule.get('is_booked'):
+                available_offerings.append({
+                    'location': loc_data['name'],
+                    'city': loc_data['city'],
+                    'activity': schedule['activity'],
+                    'mode': schedule['mode'],
+                    'day': schedule['day'],
+                    'time_start': schedule['time_start'],
+                    'time_end': schedule['time_end'],
+                    'id': loc_id
+                })
+
+    return render_template('available_offerings.html', offerings=available_offerings, user=user)
 
 
 if __name__ == '__main__':

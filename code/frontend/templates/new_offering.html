@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    {% include '_header.html' %}
+    {% include 'base.html' %}
     <div class="content-container">
         <h1>Create New Offering</h1>
         <form method="POST" action="{{ url_for('new_offering') }}">

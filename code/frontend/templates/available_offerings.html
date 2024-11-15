@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Available Offerings{% endblock %}
+
+{% block content %}
+<h1>Available Offerings</h1>
+{% if offerings %}
+    <ul>
+        {% for offering in offerings %}
+            <li>
+                <strong>{{ offering.activity }} ({{ offering.mode | capitalize }})</strong><br>
+                Location: {{ offering.location }}, {{ offering.city }}<br>
+                Day: {{ offering.day }}<br>
+                Time: {{ offering.time_start }} - {{ offering.time_end }}<br>
+                <form action="{{ url_for('book_offering') }}" method="post">
+                    <input type="hidden" name="offering_id" value="{{ offering.id }}">
+                    <button type="submit">Book This Offering</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No offerings available for booking at the moment.</p>
+{% endif %}
+{% endblock %}
