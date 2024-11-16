@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Confirmation{% endblock %}
+
+{% block content %}
+<h1>Booking Confirmation</h1>
+<div class="confirmation">
+    <p><strong>Activity:</strong> {{ booking.activity }}</p>
+    <p><strong>Mode:</strong> {{ booking.mode | capitalize }}</p>
+    <p><strong>Location:</strong> {{ booking.location }}, {{ booking.city }}</p>
+    <p><strong>Day:</strong> {{ booking.day }}</p>
+    <p><strong>Time:</strong> {{ booking.time_start }} - {{ booking.time_end }}</p>
+    <p><strong>Instructor:</strong> {{ booking.instructor or "TBD" }}</p>
+</div>
+<div>
+    <p>Your booking has been confirmed. Thank you!</p>
+    <a href="{{ url_for('my_bookings') }}" class="btn">View My Bookings</a>
+    <a href="{{ url_for('offerings') }}" class="btn">Book Another Offering</a>
+</div>
+{% endblock %}

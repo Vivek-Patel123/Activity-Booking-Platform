@@ -37,10 +37,12 @@ def offerings():
         user_bookings_ref = db.reference(f'users/{user["uid"]}/bookings')
         user_bookings = user_bookings_ref.get() or {}
 
-        # Prevent double booking on the same day and time
+        # Check if the user has already booked this offering
         for booking_id, booking in user_bookings.items():
-            if booking['day'] == day and booking['time_start'] == request.form['time_start']:
-                flash("You already have a booking at this time.", "error")
+            if (booking['offering_id'] == offering_id and
+                booking['activity'] == activity and
+                booking['day'] == day):
+                flash("You have already booked this offering.", "error")
                 return redirect(url_for('offerings'))
 
         offering_ref = db.reference(f'locations/{offering_id}')
@@ -60,11 +62,6 @@ def offerings():
                         max_participants = schedule.get('max_participants', 0)
                         if participants < max_participants:
                             schedule['participants'] = participants + 1
-
-                            # Mark as full if participants reach max capacity
-                            if schedule['participants'] >= max_participants:
-                                schedule['is_full'] = True
-
                             offering_ref.child('schedule').set(offering_data['schedule'])
                             user_bookings_ref.push({
                                 'offering_id': offering_id,
@@ -112,6 +109,8 @@ def offerings():
             offerings_list.append(offering)
 
     return render_template('offerings.html', offerings=offerings_list, user=user)
+
+
 
 
 
@@ -272,49 +271,26 @@ def register():
         email = request.form['email']
         password = request.form['password']
         name = request.form['name']
-        role = request.form['role']
-        age = int(request.form.get('age', 18))  # Default to 18 if not provided
-
-        # Optional: Capture guardian details for users under 18
-        guardian_name = request.form.get('guardian_name') if age < 18 else None
-        guardian_relation = request.form.get('guardian_relation') if age < 18 else None
-
-        # Handle city selection for instructors
-        cities = request.form.getlist('cities') if role == 'instructor' else []
-
-        # Check if an account with the same email already exists
         user_ref = db.reference('users').order_by_child('email').equal_to(email).get()
         if user_ref:
             flash("An account with this email already exists.", "error")
             return redirect(url_for('register'))
 
-        # Hash the password
         hashed_password = generate_password_hash(password)
-
-        # Push the new user data to the database
         new_user_ref = db.reference('users').push({
             'name': name,
             'email': email,
             'password': hashed_password,
-            'role': role,
-            'age': age,
-            'guardian_name': guardian_name,
-            'guardian_relation': guardian_relation,
-            'cities': cities  # Save selected cities for instructors
+            'role': 'user'
         })
-
-        # Store user session data
         session['user'] = {
             'uid': new_user_ref.key,
             'name': name,
-            'role': role
+            'role': 'user'
         }
-
         flash("Registration successful! You are now logged in.", "success")
         return redirect(url_for('index'))
-
     return render_template('register.html')
-
 
 @app.context_processor
 def inject_user():
