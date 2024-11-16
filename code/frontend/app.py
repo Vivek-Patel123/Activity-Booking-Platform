@@ -37,12 +37,10 @@ def offerings():
         user_bookings_ref = db.reference(f'users/{user["uid"]}/bookings')
         user_bookings = user_bookings_ref.get() or {}
 
-        # Check if the user has already booked this offering
+        # Prevent double booking on the same day and time
         for booking_id, booking in user_bookings.items():
-            if (booking['offering_id'] == offering_id and
-                booking['activity'] == activity and
-                booking['day'] == day):
-                flash("You have already booked this offering.", "error")
+            if booking['day'] == day and booking['time_start'] == request.form['time_start']:
+                flash("You already have a booking at this time.", "error")
                 return redirect(url_for('offerings'))
 
         offering_ref = db.reference(f'locations/{offering_id}')
@@ -109,12 +107,11 @@ def offerings():
                 'time_end': schedule['time_end'],
                 'id': loc_id,
                 'instructor': schedule.get('instructor'),
-                'is_full': schedule.get('is_full', False)  # Fetch is_full status
+                'is_full': schedule.get('participants', 0) >= schedule.get('max_participants', 0)
             }
             offerings_list.append(offering)
 
     return render_template('offerings.html', offerings=offerings_list, user=user)
-
 
 
 
