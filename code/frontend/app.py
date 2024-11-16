@@ -62,6 +62,11 @@ def offerings():
                         max_participants = schedule.get('max_participants', 0)
                         if participants < max_participants:
                             schedule['participants'] = participants + 1
+
+                            # Mark as full if participants reach max capacity
+                            if schedule['participants'] >= max_participants:
+                                schedule['is_full'] = True
+
                             offering_ref.child('schedule').set(offering_data['schedule'])
                             user_bookings_ref.push({
                                 'offering_id': offering_id,
@@ -104,12 +109,11 @@ def offerings():
                 'time_end': schedule['time_end'],
                 'id': loc_id,
                 'instructor': schedule.get('instructor'),
-                'is_full': schedule.get('participants', 0) >= schedule.get('max_participants', 0)
+                'is_full': schedule.get('is_full', False)  # Fetch is_full status
             }
             offerings_list.append(offering)
 
     return render_template('offerings.html', offerings=offerings_list, user=user)
-
 
 
 
@@ -271,19 +275,20 @@ def register():
         email = request.form['email']
         password = request.form['password']
         name = request.form['name']
-        age = int(request.form['age'])  # Capture the age
+        role = request.form['role']
+        age = int(request.form.get('age', 18))  # Default to 18 if not provided
+
+        # Optional: Capture guardian details for users under 18
         guardian_name = request.form.get('guardian_name') if age < 18 else None
         guardian_relation = request.form.get('guardian_relation') if age < 18 else None
+
+        # Handle city selection for instructors
+        cities = request.form.getlist('cities') if role == 'instructor' else []
 
         # Check if an account with the same email already exists
         user_ref = db.reference('users').order_by_child('email').equal_to(email).get()
         if user_ref:
             flash("An account with this email already exists.", "error")
-            return redirect(url_for('register'))
-
-        # Enforce guardian requirement for underage clients
-        if age < 18 and not guardian_name:
-            flash("Underage clients must have a guardian.", "error")
             return redirect(url_for('register'))
 
         # Hash the password
@@ -294,17 +299,18 @@ def register():
             'name': name,
             'email': email,
             'password': hashed_password,
-            'role': 'user',
+            'role': role,
             'age': age,
             'guardian_name': guardian_name,
-            'guardian_relation': guardian_relation
+            'guardian_relation': guardian_relation,
+            'cities': cities  # Save selected cities for instructors
         })
 
         # Store user session data
         session['user'] = {
             'uid': new_user_ref.key,
             'name': name,
-            'role': 'user'
+            'role': role
         }
 
         flash("Registration successful! You are now logged in.", "success")

@@ -13,27 +13,29 @@
                     <p><strong>Day:</strong> {{ offering.day }}</p>
                     <p><strong>Time:</strong> {{ offering.time_start }} - {{ offering.time_end }}</p>
                     <p><strong>Instructor:</strong> {{ offering.instructor or 'Not assigned' }}</p>
-                    {% if user %}
-                        {% if user.role == 'instructor' and not offering.instructor %}
-                            <form method="post" action="{{ url_for('offerings') }}">
-                                <input type="hidden" name="offering_id" value="{{ offering.id }}">
-                                <input type="hidden" name="activity" value="{{ offering.activity }}">
-                                <input type="hidden" name="day" value="{{ offering.day }}">
-                                <button type="submit">Book for Instruction</button>
-                            </form>
-                        {% elif user.role == 'user' and offering.instructor and not offering.is_full %}
-                            <form method="post" action="{{ url_for('offerings') }}">
-                                <input type="hidden" name="offering_id" value="{{ offering.id }}">
-                                <input type="hidden" name="activity" value="{{ offering.activity }}">
-                                <input type="hidden" name="day" value="{{ offering.day }}">
-                                <button type="submit">Book Now</button>
-                            </form>
-                        {% endif %}
-                    {% else %}
-                        <p>Please <a href="{{ url_for('login') }}">log in</a> to book this offering.</p>
-                    {% endif %}
+                    
                     {% if offering.is_full %}
-                        <p class="full-booking">This offering is fully booked.</p>
+                        <p class="full-booking" style="color: red; font-weight: bold;">This offering is fully booked.</p>
+                    {% else %}
+                        {% if user %}
+                            {% if user.role == 'instructor' and not offering.instructor %}
+                                <form method="post" action="{{ url_for('offerings') }}">
+                                    <input type="hidden" name="offering_id" value="{{ offering.id }}">
+                                    <input type="hidden" name="activity" value="{{ offering.activity }}">
+                                    <input type="hidden" name="day" value="{{ offering.day }}">
+                                    <button type="submit">Book for Instruction</button>
+                                </form>
+                            {% elif user.role == 'user' and offering.instructor %}
+                                <form method="post" action="{{ url_for('offerings') }}">
+                                    <input type="hidden" name="offering_id" value="{{ offering.id }}">
+                                    <input type="hidden" name="activity" value="{{ offering.activity }}">
+                                    <input type="hidden" name="day" value="{{ offering.day }}">
+                                    <button type="submit">Book Now</button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <p>Please <a href="{{ url_for('login') }}">log in</a> to book this offering.</p>
+                        {% endif %}
                     {% endif %}
                 </div>
             {% endfor %}

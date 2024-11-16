@@ -30,12 +30,34 @@
         <option value="parent">Parent</option>
     </select>
 
+    <div id="city-section" style="display: none;">
+        <label for="cities">Available Cities:</label>
+        <select id="cities" name="cities" multiple>
+            <option value="Montreal">Montreal</option>
+            <option value="Laval">Laval</option>
+            <option value="Quebec City">Quebec City</option>
+            <option value="Sherbrooke">Sherbrooke</option>
+        </select>
+        <p>Hold down the Ctrl (Windows) / Command (Mac) key to select multiple options.</p>
+    </div>
+
     <button type="submit">Register</button>
 </form>
 
 <script>
+    const roleSelect = document.getElementById('role');
+    const citySection = document.getElementById('city-section');
     const ageInput = document.getElementById('age');
     const guardianSection = document.getElementById('guardian-section');
+
+    // Show or hide the city section based on the selected role
+    roleSelect.addEventListener('change', () => {
+        if (roleSelect.value === 'instructor') {
+            citySection.style.display = 'block';
+        } else {
+            citySection.style.display = 'none';
+        }
+    });
 
     // Show or hide the guardian section based on the age input
     ageInput.addEventListener('input', () => {
