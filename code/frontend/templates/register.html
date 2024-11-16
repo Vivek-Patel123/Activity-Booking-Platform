@@ -12,13 +12,38 @@
     <label for="password">Password:</label>
     <input type="password" id="password" name="password" required>
 
+    <label for="age">Age:</label>
+    <input type="number" id="age" name="age" min="0" required>
+
+    <div id="guardian-section" style="display: none;">
+        <label for="guardian_name">Guardian Name:</label>
+        <input type="text" id="guardian_name" name="guardian_name">
+
+        <label for="guardian_relation">Guardian Relation:</label>
+        <input type="text" id="guardian_relation" name="guardian_relation">
+    </div>
+
     <label for="role">Role:</label>
     <select id="role" name="role" required>
         <option value="user">User</option>
         <option value="instructor">Instructor</option>
-        <option value="user">Parent</option>
+        <option value="parent">Parent</option>
     </select>
 
     <button type="submit">Register</button>
 </form>
+
+<script>
+    const ageInput = document.getElementById('age');
+    const guardianSection = document.getElementById('guardian-section');
+
+    // Show or hide the guardian section based on the age input
+    ageInput.addEventListener('input', () => {
+        if (ageInput.value < 18) {
+            guardianSection.style.display = 'block';
+        } else {
+            guardianSection.style.display = 'none';
+        }
+    });
+</script>
 {% endblock %}

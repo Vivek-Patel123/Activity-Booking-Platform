@@ -271,26 +271,47 @@ def register():
         email = request.form['email']
         password = request.form['password']
         name = request.form['name']
+        age = int(request.form['age'])  # Capture the age
+        guardian_name = request.form.get('guardian_name') if age < 18 else None
+        guardian_relation = request.form.get('guardian_relation') if age < 18 else None
+
+        # Check if an account with the same email already exists
         user_ref = db.reference('users').order_by_child('email').equal_to(email).get()
         if user_ref:
             flash("An account with this email already exists.", "error")
             return redirect(url_for('register'))
 
+        # Enforce guardian requirement for underage clients
+        if age < 18 and not guardian_name:
+            flash("Underage clients must have a guardian.", "error")
+            return redirect(url_for('register'))
+
+        # Hash the password
         hashed_password = generate_password_hash(password)
+
+        # Push the new user data to the database
         new_user_ref = db.reference('users').push({
             'name': name,
             'email': email,
             'password': hashed_password,
-            'role': 'user'
+            'role': 'user',
+            'age': age,
+            'guardian_name': guardian_name,
+            'guardian_relation': guardian_relation
         })
+
+        # Store user session data
         session['user'] = {
             'uid': new_user_ref.key,
             'name': name,
             'role': 'user'
         }
+
         flash("Registration successful! You are now logged in.", "success")
         return redirect(url_for('index'))
+
     return render_template('register.html')
+
 
 @app.context_processor
 def inject_user():
